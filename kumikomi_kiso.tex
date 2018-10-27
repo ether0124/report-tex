@@ -1,6 +1,27 @@
 
 \documentclass {ujarticle}
 \usepackage[top=30truemm,bottom=30truemm,left=25truemm,right=25truemm]{geometry}
+\usepackage{listings,jlisting}
+
+\lstset{%
+  language={C},
+  basicstyle={\small},%
+  identifierstyle={\small},%
+  commentstyle={\small\itshape},%
+  keywordstyle={\small\bfseries},%
+  ndkeywordstyle={\small},%
+  stringstyle={\small\ttfamily},
+  frame={tb},
+  breaklines=true,
+  columns=[l]{fullflexible},%
+  numbers=left,%
+  xrightmargin=0zw,%
+  xleftmargin=3zw,%
+  numberstyle={\scriptsize},%
+  stepnumber=1,
+  numbersep=1zw,%
+  lineskip=-0.5ex%
+}
 
 \title {組み込み制御技術の基礎}
 \author{non name}
@@ -46,13 +67,230 @@
  パソコンと GR-SAKURA ボードを USB ケーブルで接続し，マイコンピュータを開いて GR-SAKURA ボードがリムーバルメディアとして認識されていない場合，GR-SAKURA ボードの赤いプッシュスイッチを押して，動作状態を初期化すると復旧（認識）される．
  
  リムーバルメディアとして認識された GR-SAKURA ボードのトップフォルダ（ルートフォルダ）に，先ほどダウンロードしたバイナリモジュール（ sketch.bin ）を転送すると，GR-SAKURA ボードが自動的にプログラム実行モードで再起動するので，プログラムが正しく動作していることを確認する．
+ \subsection{使用したプログラム}
+ 本実験では５種類のプログラムを使用した．
+ \subsubsection{プッシュスイッチ}
+ \begin{lstlisting}
+#include<rxduino.h>
+
+#define INTERVAL	50
+#define PIN_IO0		0
+
+void setup()
+{
+	for(int i = 0; i <= 8; i++){
+		pinMode(PIN_IO0 + i, OUTPUT);
+	}
+	pinMode(PIN_SW,INPUT);
+}
+
+void loop()
+{
+	if(digitalRead(PIN_SW) == 0){
+		for(int i=0; i < 8; i++){
+			digitalWrite(PIN_IO0 + i,1);
+			delay(INTERVAL);
+		}
+		for(int i=0; i < 8; i++){
+			digitalWrite(PIN_IO0 + i,0);
+			delay(INTERVAL);
+		}
+	}else{
+		for(int i =0; i < 8; i++){
+			digitalWrite(PIN_IO0 + i,0);
+		}
+	}
+}
+
+ \end{lstlisting}
+ 
+\bigskip
+ 以下，４つのプログラムはパソコンとシリアル通信をする必要がある． プログラム実行後パソコンで TeraTerm を開き，GR-SAKURA と接続しているポートを選択する．キーボードのいずれかのキーを押すとコンソール画面に「Connect!」と表示され接続が完了し，シリアル通信ができるようになる．
+ \subsubsection{CdS入力}
+ \begin{lstlisting}
+#include<rxduino.h>
+
+#define INTERVAL	100
+#define	PIN_IO0		0
+#define PIN_AN0		14
+
+void setup()
+{
+	for(int i = 0; i <= 8; i++){
+		pinMode(PIN_IO0 + i,OUTPUT);
+	}
+	analogReference(EXTERNAL);
+	Serial.begin(9600);
+	while(Serial.available() == 0) { ; }
+	Serial.println("Connect!");
+}
+
+void loop()
+{
+	unsigned int cds = analogRead(PIN_AN0);
+	Serial.print("CdS = ");
+	Serial.println(cds);
+	unsigned int level = 100;
+	for(int i = 0; i < 8; i++){
+		if(cds < level) digitalWrite(PIN_IO0 + i,1);
+		else digitalWrite(PIN_IO0 + i,0);
+		level += 100;
+	}
+	delay(INTERVAL);
+}
+
+ \end{lstlisting}
+ 
+ \subsubsection{PWM制御}
+ \begin{lstlisting}
+#include<rxduino.h>
+
+#define INTERVAL	100
+#define	PIN_IO0		0
+#define PIN_AN0		14
+
+void setup()
+{
+	for(int i = 0; i <= 8; i++){
+		pinMode(PIN_IO0 + i,OUTPUT);
+	}
+	analogReference(EXTERNAL);
+	Serial.begin(9600);
+	while(Serial.available() == 0);
+	Serial.println("Connect!");
+}
+
+void loop()
+{
+	unsigned int cds = analogRead(PIN_AN0);
+	Serial.print("CdS = ");
+	Serial.println(cds);	
+	int level = 255 - cds / 4;
+	for (int i = 0; i < 8; i++){
+		analogWrite(PIN_IO0 + i,level);
+	}
+	delay(INTERVAL);
+}
+ \end{lstlisting}
+ 
+ \subsubsection{圧電ブザー}
+ \begin{lstlisting}
+#include<rxduino.h>
+
+#define INTERVAL	100
+#define	PIN_IO8		8
+#define PIN_AN0		14
+
+void setup()
+{
+	pinMode(PIN_IO8, OUTPUT);
+	analogReference(EXTERNAL);
+	Serial.begin(9600);
+	while(Serial.available() == 0);
+	Serial.println("Connect!");
+}
+
+void loop()
+{
+	unsigned int cds = analogRead(PIN_AN0);
+	Serial.print("CdS = ");
+	Serial.println(cds);
+	int frequency = 3300 -cds * 3;
+	tone(PIN_IO8, frequency, 20);
+	delay(INTERVAL);
+}
+
+ \end{lstlisting}
+
+ \subsubsection{シングルクリック}
+ \begin{lstlisting}
+#include<Arduino.h>
+
+#define PIN_IO0		0
+#define	SWITCH_PUSH	0	
+#define LED_ON		1
+#define LED_OFF		0
+
+int position = 0;
+unsigned long now = 0;
+unsigned long action = 0;
+
+void setup()
+{
+	for(int i=0; i < 8; i++){
+		pinMode(PIN_IO0 + i, OUTPUT);
+		digitalWrite(PIN_IO0 + i,LED_OFF);
+	}
+	Serial.begin(9600);
+	while(Serial.available() == 0);
+	Serial.println("Connect!");
+	digitalWrite(position, LED_ON);
+}
+
+void loop()
+{
+	now =millis();
+	if (digitalRead(PIN_SW) == SWITCH_PUSH) {
+		if(action == 0) action = now;
+	}else{
+		if(action > 0){
+			digitalWrite(position, LED_OFF);
+			position++;
+			if(position >= 8) position = 0;
+			digitalWrite(position, LED_ON);
+			Serial.println(now - action);
+			action = 0;
+		}
+	}
+}
+
+ \end{lstlisting}
+ 
  \section{実験結果}
+ 実験方法3.4 に記載したプログラムを GR-SAKURA 上で実行した際の外部接続回路，またはコンソール画面の様子を実験結果としてまとめる．
+ \subsection{プッシュスイッチ}
+ プログラム実行後，外部接続回路上のプッシュスイッチをクリック，ダブルクリックしたとき，プログラムから PIN\_IO につないだ LED に点灯または消灯の命令が入力され，出力として PIN\_IO に繋がれた８本の LED が一定の時間間隔で端から順に点灯し，その後同じ順で消灯をした．また，プッシュスイッチを長押ししている間はこの動作を繰り返した．逆に，スイッチを押していないときは，プログラムから LED に消灯の命令の入力が繰り返され，LED は消灯を続けた．
+ 
+\subsection{CdS入力}
+プログラム実行後，LED が点灯し，コンソール画面に CdS の値が連続的に出力された．CdS に当たる光の量をキャップなどを使って物理的に操作すると，暗くしたときCdS の値は大きくなり LED の点灯数が減少した．明るくすると値は小さくなり，．また，このときプログラムに代入された CdS の値も変化し，
+
+\subsection{PWM制御}
+ プログラム実行後，すべての LED が点灯した．
+ 
+ \subsection{圧電ブザー}
+ 
+ \subsection{シングルクリック}
+ 
+ 
+ 
  
  \section{課題}
  
  \section{考察}
  
  \section{引用文献}
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
  
  
 \end{document}
