@@ -1,4 +1,28 @@
 \documentclass{ujarticle}
+\usepackage[top=30truemm,bottom=30truemm,left=25truemm,right=25truemm]{geometry}
+\usepackage{listings,jlisting}
+\usepackage[dvipdfmx]{graphicx}
+\usepackage{indentfirst}
+
+\lstset{%
+  language={C},
+  basicstyle={\small},%
+  identifierstyle={\small},%
+  commentstyle={\small\itshape},%
+  keywordstyle={\small\bfseries},%
+  ndkeywordstyle={\small},%
+  stringstyle={\small\ttfamily},
+  frame={tb},
+  breaklines=true,
+  columns=[l]{fullflexible},%
+  numbers=left,%
+  xrightmargin=0zw,%
+  xleftmargin=3zw,%
+  numberstyle={\scriptsize},%
+  stepnumber=1,
+  numbersep=1zw,%
+  lineskip=-0.5ex%
+}
 
 \begin{document}
 \section{目的}
@@ -45,7 +69,7 @@ v = L\frac{di}{dt}
 \begin{equation}
 \label{sixth}
 V_{m}\sin(\omega t + \theta_{V})=L\frac{d}{dt} {I_{m}\sin(\omega t + \theta_{I}) } = \omega LI_{m}\cos(\omega t + \theta_{I})
-\end{equation}•
+\end{equation}
 となる．
 
 
