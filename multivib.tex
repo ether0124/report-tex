@@ -1,0 +1,56 @@
+\documentclass{ujarticle}
+\usepackage[top=30truemm,bottom=30truemm,left=25truemm,right=25truemm]{geometry}
+\usepackage{listings,jlisting}
+\usepackage[dvipdfmx]{graphicx}
+\usepackage{indentfirst}
+
+\lstset{%
+  language={C},
+  basicstyle={\small},%
+  identifierstyle={\small},%
+  commentstyle={\small\itshape},%
+  keywordstyle={\small\bfseries},%
+  ndkeywordstyle={\small},%
+  stringstyle={\small\ttfamily},
+  frame={tb},
+  breaklines=true,
+  columns=[l]{fullflexible},%
+  numbers=left,%
+  xrightmargin=0zw,%
+  xleftmargin=3zw,%
+  numberstyle={\scriptsize},%
+  stepnumber=1,
+  numbersep=1zw,%
+  lineskip=-0.5ex%
+}
+
+\begin{document}
+\section{目的}
+2つの増幅器（トランジスタ）等とコンデンサと抵抗をたすき掛け形に接続すると，ONとOFFを繰り返す発振器を作製することができる．本実験では，実際にユニバーサル基板上にはんだごてを用いて，マルチバイブレータ回路を作製し，LEDの点灯が繰り返されることを確認する．また，回路の動作原理を理解し，点灯時間の制御方法について理解する．
+
+\section{理論}
+\subsection{マルチバイブレータ回路(multivibrator circuit)}
+図1にマルチバイブレータ回路図を示す．この回路では，一方のトランジスタがONとなり，もう一方がOFFとなる．コンデンサの充電・放電によって，トランジスタのONとOFFは交互に繰り返される．
+
+\subsection{マルチバイブレータの動作原理}
+状態1）　初期状態で，トランジスタQ2がONと仮定する．初期状態で，LED2は点灯している．反対にトランジスタQ1はOFFとなり，LED１は消灯している．コンデンサC1は電源EからLED１と抵抗R１を通し流れた電流によって充電（電荷がたまる）される．
+
+状態1では，LED1に電流が流れているように見えるが，コンデンサC1への充電はすぐに終了し，この電流は流れなくなる．そのためLED1は瞬時に消灯する．
+
+コンデンサC1の電位を$V_{c}$とする．\\
+\\
+　状態2）　コンデンサC2は電源Eから抵抗R3を通し流れた電流によって充電（電荷がたまっている）される．この充電時間は，コンデンサC2の容量と抵抗R3，充電前の状態とによって決定される．
+
+R3はR1に比べ抵抗値が大きいので，充電時間はコンデンサC1よりも長くなる．（C2の充電前は，マイナスの電位を持っている状態である．状態4を参照すること．）\\
+\\
+　状態3）　コンデンサC2への充電が進みC2の左側の電位が上がってくる．そしてトランジスタQ1のベース・エミッタ間電圧VBE＝0.6～0.7Vよりも高くなるとトランジスタQ1のベースに電流が流れトランジスタQ1がONとなる．\\
+\\
+　状態4）　トランジスタQ1がONになると，コンデンサC1の＋側の電位はGND(0V)となる．
+\\
+コンデンサC1の＋側の端子がGNDレベルとなったことで，コンデンサC1反対側の電位は，マイナスの電位となる．コンデンサC1には状態1により$V_{c}$の電位が充電されていたため，コンデンサC1の-側の端子電位は-$V_{c}$となる．
+
+これにより，トランジスタQ2のベースの電位が下がりトラジスタQ2はOFFとなる．
+
+以降は，素子は逆になるが状態１～４が繰り返される．
+
+\end{document}
